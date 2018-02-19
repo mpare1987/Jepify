@@ -1,0 +1,25 @@
+.players-list {
+  margin-bottom:60px;
+  padding-left:0;
+}
+
+.player {
+  padding-left:0;
+  list-style-type:none;
+  line-height:2.5;
+  border-bottom:1px solid $gray-xlight;
+
+  &:first-child {
+    border-top:1px solid $gray-xlight;
+  }
+
+  &:hover {
+    background-color:$hover;
+  }
+
+  &.has-responded {
+    color: $text-xlight;
+    text-decoration: line-through
+  }
+
+}

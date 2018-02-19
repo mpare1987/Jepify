@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Jeopardy</title>
+  <link rel="stylesheet" href="/public/style.css">
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // exposes an "io" global, with a default connection to the host that serves the page
+    var socket = io();
+  </script>
+</head>
+
+<body>
+
+  <div id="screen" class="container">
+
+  </div>
+
+
+  <script type="text/javascript">
+    var $screen = $('#screen');
+    var nameValid = false;
+    var idValid = false;
+
+
+    // on initial load render home page inside #screen
+    $.get('screens/home.html', function(res) {
+      $screen.append(res);
+    })
+
+    var Buzzer = function(config) {
+      this.id = socket.id;
+      this.name = config.name;
+      this.gameID = config.gameID;
+      this.enabled = false;
+      this.$buzzer = $('.buzzer');
+      this.$field = $('.podium');
+
+      this.buzzIn = function($btn) {
+        var that = this;
+
+        if ($btn.hasClass('disabled') || $btn.hasClass('responded')) {
+          // clicks are not allowed while disabled
+          return;
+        }
+
+        if (this.enabled === false) {
+          // disable buzzer for 250ms because the game is not open for responses yet
+          $btn.addClass('disabled');
+          setTimeout(function() {
+            $btn.removeClass('disabled');
+          }, 250);
+          return;
+        }
+
+        this.$buzzer.addClass('responded');
+        socket.emit('buzz', JSON.stringify(this));
+      };
+
+      // -------------------------
+      // websocket listeners
+      // -------------------------
+      var that = this;
+
+      socket.on('gameCleared', function(id) {
+        that.enabled = false;
+        that.$buzzer.removeClass('disabled responded');
+        that.$field.removeClass('open');
+      });
+
+      socket.on('gameOpened', function(id) {
+        that.enabled = true;
+        that.$field.addClass('open');
+      });
+
+      // attach buzzer event listener
+      this.$buzzer.on('click', function() {
+        that.buzzIn($(this));
+      });
+    };
+
+    var Proctor = function(gameID) {
+      this.socket = socket;
+      this.id = this.socket.id;
+      this.gameID = gameID;
+      this.$btnOpen = $('#open');
+      this.$btnClear = $('#clear');
+      this.$respondents = $('#respondent-list');
+
+      this.open = function() {
+        var data = this.gameID;
+        this.socket.emit('gameOpen', data);
+      }
+
+      this.clear = function() {
+        console.log('clearing game!')
+        this.socket.emit('gameClear', this.gameID);
+      }
+
+      this.appendRespondent = function(name) {
+        this.$respondents.append('<li class="player">' + name + '</li>');
+      }
+      // attach event listeners
+      var that = this;
+      var s = socket;
+      this.$btnOpen.on('click', function() {
+        that.open();
+      });
+
+      this.$btnClear.on('click', function() {
+        that.clear();
+        that.$respondents.text('');
+      });
+
+      // -------------------------
+      // websocket listeners
+      // -------------------------
+      socket.on('buzz', function(name) {
+        that.appendRespondent(name);
+      });
+
+      $(document).on('click', '.player', function() {
+        $(this).addClass('has-responded');
+      })
+
+    }
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,163 @@
+<div class="container_inner">
+
+    <div class="joinError">
+       <!-- append join error here -->
+    </div>
+    <div class="" id="createGameWrap" style="margin-bottom:48px;">
+        <h2>Create a new game</h2>
+        <button id="createGame" class="btn btn--pos"  name="button">Create Game</button>
+    </div>
+
+    <h2>Join a game</h2>
+    <div id="gameIDWrap">
+        <label for="gameID">Game ID</label>
+        <input id="gameID" type="text" name="" placeholder="enter game ID" value="">
+        <br><br>
+    </div>
+
+
+    <label for="playerName">Your Name</label>
+    <input id="playerName" type="text" name="playerName" placeholder="Enter your name" value="">
+    <br><br>
+
+    <p>Buzzer Color:</p>
+    <div class="swatch-grid">
+        <div class="swatch-grid_swatch swatch-grid_swatch--red is-selected js-swatch" data-swatch-color="red"></div>
+        <div class="swatch-grid_swatch swatch-grid_swatch--green js-swatch" data-swatch-color="green"></div>
+        <div class="swatch-grid_swatch swatch-grid_swatch--blue js-swatch" data-swatch-color="blue"></div>
+        <div class="swatch-grid_swatch swatch-grid_swatch--pink js-swatch" data-swatch-color="pink"></div>
+    </div>
+    <br><br>
+
+    <button id="joinGame" type="button" class="btn btn--pos" name="button" disabled>Join Game</button>
+</div>
+
+<script type="text/javascript">
+    var $gameID = $('#gameID');
+    var $playerName = $('#playerName');
+    var $btnJoin = $('#joinGame');
+
+
+    $gameID.on('keyup blur validate',function(e) {
+        if (e.type === 'keyup') {
+            $('.joinError').text('');
+        }
+
+        var val = $(this).val();
+        console.log(val.length);
+        if (val.length !== 4) {
+            idValid = false;
+            $btnJoin.attr('disabled', 'disabled');
+            return;
+        }
+
+        if (nameValid) {
+            $btnJoin.removeAttr('disabled')
+        }
+
+        idValid = true;
+    });
+
+    $playerName.on('keyup blur validate',function(e) {
+        if (e.type === 'keyup') {
+            $('.joinError').text('');
+        }
+        var val = $(this).val();
+
+        if (!val.length) {
+            nameValid = false;
+            $btnJoin.attr('disabled', 'disabled');
+            return;
+        }
+
+        if (idValid) {
+            $btnJoin.removeAttr('disabled')
+        }
+
+        nameValid = true;
+    });
+
+    $(document).on('click', '#createGame',function(e) {
+        socket.emit('createGame', socket.id);
+    });
+
+    $(document).on('click', '#joinGame',function(e) {
+        // will route to /player if successful or pop error if not
+        // window.joinGame($gameID.val())
+        var data = JSON.stringify({
+            name:$playerName.val(),
+            gameID:$gameID.val(),
+        })
+        socket.emit('joinGame', data);
+    });
+
+
+    // create game
+    socket.on('gameCreated',function(gameID) {
+         var w = window;
+
+         $.get('screens/proctor.html',function(res) {
+            $screen.html(res);
+
+            $('#gameID').html('Game ID: ' + gameID);
+
+            w.proctor = new Proctor(gameID);
+            var shareUrl = window.location.origin + '?id=' + window.proctor.gameID + '&create=0';
+
+            $('#shareURL')
+                .attr('href', shareUrl)
+                .text(shareUrl);
+
+         });
+    });
+
+    // join game
+    socket.on('gameJoined', function(data) {
+        var d = JSON.parse(data);
+        var w = window;
+        /*
+           data.gameID = string (id of game joined);
+           data.name = string (player's name);
+           data.proctor = string (proctorID)
+        */
+
+        $.get('screens/player.html',function(res) {
+             $screen.html(res);
+             $('#gameID').html('Game ID: ' + d.gameID);
+             $('#playerName').html(d.name);
+             w.buzzer = new Buzzer(d);
+
+             $('.js-buzzer').addClass('buzzer--' + window.buzzerColor)
+        });
+    });
+
+    // join game
+    socket.on('joinError', function(msg) {
+        console.warn('could not join game');
+        $('.joinError').text(msg);
+    })
+
+
+
+    var url = new URL(window.location.href);
+
+    if (url.searchParams.get('create') == 0) $('#createGameWrap').hide();
+
+    if (url.searchParams.get('id') !== null) {
+        $('#gameIDWrap').css({
+            'visibility':'hidden',
+            'position':'absolute'
+        })
+        $gameID.val(url.searchParams.get('id'))
+    }
+
+    $(document).on('click touchend','.js-swatch',function() {
+        $(this).addClass('is-selected')
+        $(this).siblings().removeClass('is-selected');
+
+        window.buzzerColor = $(this).data().swatchColor
+    })
+
+    $gameID.trigger('validate');
+    $playerName.trigger('validate');
+</script>

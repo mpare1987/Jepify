@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,400i,600,700');
+$green:#119619;
+$red:#e23333;
+$blue:#216FAF;
+$gray:#676767;
+$gray-dark:#444444;
+$gray-xlight:#aaa;
+$pink:#ff69b4;
+$hover: #f0f0f0;
+
+// text colors
+$text-light:#747474;
+$text-xlight:#aaa;
+
+*,
+*:after,
+*:before {
+  box-sizing: border-box;
+}
+
+.container,
+.podium,
+body,
+html {
+  height: 100%;
+  font-family: open sans, sans-serif;
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  margin-top: 0;
+}
+
+input {
+  font-size: 16px!important;
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  &_inner {
+    padding:12px;
+  }
+}
+
+.meta {
+  margin: 0 8px;
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+  align-items: center;
+
+  &_header,
+  &_subhead {
+    margin-bottom:0;
+  }
+
+  &_header {
+    margin-bottom:4px;
+    font-weight:700;
+  }
+
+  &_subhead {
+    color:$text-light;
+  }
+}
+
+.btn {
+  font-size: 16px;
+  position: relative;
+  min-width: 100px;
+  padding: 10px 16px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  border-radius: 4px;
+  margin-right: 18px;
+  font-weight: 600;
+
+  &--pos {
+    background:$green;
+  }
+
+  &--neg {
+    background:$red;
+  }
+
+  &--neut{
+
+  }
+
+  &:active {
+    top: 1px;
+  }
+}

@@ -1,0 +1,14 @@
+{
+    "name": "socket-chat-example",
+    "version": "0.0.1",
+    "description": "my first socket.io app",
+    "dependencies": {},
+    "devDependencies": {
+        "express": "^4.15.2",
+        "node-sass": "^4.7.2",
+        "socket.io": "^2.0.4"
+    },
+    "scripts": {
+        "scss": "node-sass --watch public/scss -o public"
+    }
+}

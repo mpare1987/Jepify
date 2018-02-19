@@ -1,0 +1,44 @@
+.joinError {
+  padding-bottom: 8px;
+  color: red;
+}
+
+.swatch-grid {
+    width:220px;
+    display:flex;
+    justify-content:space-between;
+    transition:all .15s ease;
+
+    &_swatch {
+        width:40px;
+        height:40px;
+        border-radius:3px;
+        box-shadow: 1px 1px 2px #aaa;
+        opacity:.65;
+
+        &--blue {
+            background:$blue;
+        }
+        &--red {
+            background:$red;
+        }
+        &--green {
+            background:$green;
+        }
+        &--pink {
+            background:$pink;
+        }
+
+        &:hover {
+            opacity:1;
+            transform:scale(1.1);
+        }
+
+        &.is-selected {
+            opacity:1;
+            transform:scale(1.1);
+        }
+    }
+
+
+}
