@@ -140,7 +140,14 @@ io.on('connection', function(socket){
      var d = JSON.parse(data);
      var game = getGame(d.gameID);
       // emit response received to proctor
-      io.to(game.proctor).emit('buzz', d.name)
+      io.to(game.proctor).emit('buzz', JSON.stringify(d))
+  });
+
+  socket.on('countDownOver',function(player) {
+      var player = JSON.parse(player);
+      var game = getGame(player.gameID);
+
+      io.to(game.proctor).emit('countDownOver', JSON.stringify(player))
   });
 
   // ---------------------------------------
@@ -160,4 +167,9 @@ io.on('connection', function(socket){
       // emit to all players that the game is CLEARED
       socket.broadcast.to(id).emit('gameCleared')
   })
+
+  socket.on('countDownStart',function(playerID) {
+      // start countdown for player
+      io.to(playerID).emit('countDownStart', {})
+  });
 });

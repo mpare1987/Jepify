@@ -1,18 +1,4 @@
 
-<div class="podium">
-   <div class="podium_lights"></div>
-   <div class="meta">
-      <h3 id="playerName" class="meta_header">
-      <h5 id="gameID" class="meta_subhead"></h5>
-   </div>
-   <div class="buzzer js-buzzer"></div>
-</div>
-
-<script type="text/javascript">
-   renderPodiumLights();
-</script>
-<!-- <script type="text/javascript">
-
 function renderPodiumLights() {
    function createLight() {
      var l = document.createElement('div');
@@ -44,21 +30,20 @@ function resetPodiumLights() {
    $('.podium_light').removeClass('is-blinking is-off is-out');
 }
 
-function countDown() {
+function countDown(cb) {
    var numLights = $('.podium_light').length;
    var $lightsOn = $('.podium_light').not('.is-out');
    var toBlinkOut;
    var max;
    var $range;
-
    // if there are only two lights left, we are on the final second of the countdown
    // NOTE: rename states later because they are confusing
-   if ($lightsOn.length === 4) {
+   if ($lightsOn.length === 2) {
       $lightsOn.addClass('is-blinking');
-      setTimeout(function() {
-         $lightsOn.addClass('is-off')
+      window.setTimeout(function() {
+         $lightsOn.addClass('is-off');
+         cb();
       },2300);
-
       return;
    }
 
@@ -67,24 +52,19 @@ function countDown() {
    toBlinkOut = Math.min($lightsOn.length, max);
 
    // leave the final two lights on for the final iteration of countdown.
-   if ($lightsOn.length - (toBlinkOut) <= 4) {
-      toBlinkOut = $lightsOn.length  - 4;
+   if ($lightsOn.length - (toBlinkOut) <= 2) {
+      toBlinkOut = $lightsOn.length  - 2;
    }
 
    $range = $lightsOn.slice($lightsOn.length - (toBlinkOut / 2), $lightsOn.length).add($lightsOn.slice(0,(toBlinkOut / 2)));
 
    $range.addClass('is-out');
 
-   setTimeout(countDown,1000);
+   setTimeout(function() {countDown(cb)},1000);
 }
 // blink out lights
-
-renderPodiumLights();
 
 // on receive countdown event, start counting down.
 // setTimeout(function(){
 //   countDown(seconds);
 // },1000);
-
-// on receive clear event, reset podium lights
-</script> -->

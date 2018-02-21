@@ -8,6 +8,7 @@
       <link rel="stylesheet" href="style.css">
 
       <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+      <script type="text/javascript" src="js/player.js"></script>
       <script src="/socket.io/socket.io.js"></script>
       <script>
          // exposes an "io" global, with a default connection to the host that serves the page
@@ -41,8 +42,6 @@
             this.$field = $('.podium');
 
             this.buzzIn = function($btn) {
-                var that = this;
-
                 if ($btn.hasClass('disabled') || $btn.hasClass('responded')) {
                     // clicks are not allowed while disabled
                     return;
@@ -58,7 +57,7 @@
                 }
 
                 this.$buzzer.addClass('responded');
-                socket.emit('buzz', JSON.stringify(this));
+                window.socket.emit('buzz', JSON.stringify(this));
             };
 
             // -------------------------
@@ -66,15 +65,28 @@
             // -------------------------
             var that = this;
 
-            socket.on('gameCleared',function(id) {
+            window.socket.on('gameCleared',function(id) {
                 that.enabled = false;
                 that.$buzzer.removeClass('disabled responded');
                 that.$field.removeClass('open');
+                window.resetPodiumLights();
             });
 
-            socket.on('gameOpened',function(id) {
+            window.socket.on('gameOpened',function(id) {
                 that.enabled = true;
                 that.$field.addClass('open');
+            });
+
+            window.socket.on('countDownStart', async function(id) {
+               await new Promise(function(resolve) {
+                  setTimeout(resolve,500);
+               });
+               function countDownCallback() {
+                  window.socket.emit('countDownOver', JSON.stringify(that));
+               }
+
+               // alert proctor that time has expired
+               window.countDown(countDownCallback);
             });
 
             // attach buzzer event listener
@@ -101,12 +113,11 @@
                 this.socket.emit('gameClear', this.gameID);
             }
 
-            this.appendRespondent = function(name) {
-               this.$respondents.append('<li class="player">' + name + '</li>');
+            this.appendRespondent = function(player) {
+               this.$respondents.append('<li class="player" id="' + player.id + '"">' + player.name + '</li>');
             }
             // attach event listeners
             var that = this;
-            var s = socket;
             this.$btnOpen.on('click', function() {
                 that.open();
             });
@@ -119,14 +130,21 @@
             // -------------------------
             // websocket listeners
             // -------------------------
-            socket.on('buzz', function(name) {
-                that.appendRespondent(name);
+            this.socket.on('buzz', function(player) {
+               player = JSON.parse(player);
+               that.appendRespondent(player);
+            });
+
+            this.socket.on('countDownOver', function(player) {
+               player = JSON.parse(player);
+               $('#' + player.id).css('background','red');
             });
 
             $(document).on('click','.player',function() {
                 $(this).addClass('has-responded');
+                // need player id
+                that.socket.emit('countDownStart', this.id);
             })
-
         }
 
       </script>
