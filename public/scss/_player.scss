@@ -44,24 +44,29 @@
 $podium-width: 17px;
 
 .podium {
-  position:relative;
-  width:100%;
-  max-width:400px;
-  height:100%;
-  border-left: $podium-width solid #343434;
-  border-right: $podium-width solid #343434;
+   position:relative;
+   width:100%;
+   max-width:400px;
+   height:100%;
+   border-left: $podium-width solid #343434;
+   border-right: $podium-width solid #343434;
 
-  &_lights {
-    position:absolute;
-    display:grid;
-    justify-items:center;
-    width:100%;
-    height:100%;
-    grid-template-columns: $podium-width $podium-width;
-    grid-gap:12px 100%;
-    margin: 0 (-$podium-width);
-    padding:8px 0;
-  };
+   &_lights {
+      position:absolute;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      height:100%;
+      padding:16px 0;
+      width:$podium-width;
+
+      &--left {
+         left: (-$podium-width);
+      }
+      &--right {
+         right:(-$podium-width);
+      }
+   }
 
   &_light {
     position:relative;
@@ -100,18 +105,16 @@ $podium-width: 17px;
     // ---------------------
     // State
     // ---------------------
-    &.is-out:after {
-      animation:blinkOut .2s 1 forwards;
-      animation-timing-function:ease-in-out;
-    }
 
-    &.is-blinking:after {
-      animation:blink .75s infinite;
+    // the last set of lights pulse to indicate that time is running out
+    &.is-pulsing:after {
+      animation:strong-pulse .85s infinite;
       animation-timing-function:ease-in-out;
     }
 
     &.is-off:after {
-      visibility:hidden;
+      animation:flash-out .2s 1 forwards;
+      animation-timing-function:ease-in-out;
     }
   }
 }
@@ -129,7 +132,7 @@ $podium-width: 17px;
 }
 
 // animations
-@keyframes blink {
+@keyframes strong-pulse {
   0% {
     box-shadow:0 0 0px #fff;
     transform:scale(1);
@@ -139,7 +142,7 @@ $podium-width: 17px;
     transform:scale(1.04);
   }
 }
-@keyframes blinkOut {
+@keyframes flash-out {
   0% {
     box-shadow:0 0 8px #fff;
     transform:scale(1.1);
@@ -153,4 +156,10 @@ $podium-width: 17px;
     transform:scale(0);
     opacity:0;
   }
+}
+
+.order {
+   font-weight:bold;
+   font-size:48px;
+   text-align:center;
 }

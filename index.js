@@ -43,15 +43,27 @@ var createGameID = function() {
 
 // games will exist on server
 var games = [];
-
 var Game = function(id, socketID) {
-    this.id = id;
-    this.players = [];
-    this.open = false;
-    this.proctor = socketID;
-    this.addPlayer = function(player) {
-        this.players.push(player.name.toLowerCase().trim())
-    }
+   this.id = id;
+   this.players = [];
+   this.open = false;
+   this.proctor = socketID;
+   this.responseOrder = 1;
+
+   this.addPlayer = function(player) {
+      this.players.push(player.name.toLowerCase().trim())
+   }
+   this.toAll = function(event, data) {
+      if (typeof data === 'object') data = JSON.stringify(data);
+      // send to everyone in game including proctor
+      io.in(this.id).emit(event, data);
+   }
+
+   this.toProctor = function(event,data) {
+      if (typeof data === 'object') data = JSON.stringify(data);
+
+      io.to(this.proctor).emit(event, data);
+   }
 }
 
 var createGame = function(id, socketID) {
@@ -70,34 +82,31 @@ var getGame = function(id) {
 
 
 var joinGame = function(data) {
-    var gameID = data.gameID;
-    var name = data.name;
+   data = JSON.parse(data);
+   var game = getGame(data.gameID);
 
-    var g = getGame(gameID);
+   // game does not exist error
+   if (!game) {
+     return {err: 'Game ' + data.gameID + ' does not exist'};
+   }
 
-    // game does not exist error
-    if (!g) {
-        return {err: 'Game ' + gameID + ' does not exist'};
-    }
+   // name taken error
+   if (game.players.includes(data.name.toLowerCase().trim())) {
+     return {err:'The name ' + data.name + ' is already taken. Choose another name'};
+   }
 
-    // name taken error
-    console.log('name taken? ', g.players.includes(name.toLowerCase().trim()))
-    console.log(g.players);
-    if (g.players.includes(name.toLowerCase().trim())) {
-        return {err:'The name ' + name + ' is already taken. Choose another name'};
-    }
+   var player = new Player(data);
+   game.addPlayer(player);
 
-    var p = new Player(name, gameID);
-    g.addPlayer(p);
+   console.log(player.name + ' joined game!');
 
-    // return player object if successful
-    console.log(name + ' game joined successfully!')
-    return p;
+   return player;
 }
 
-var Player = function(name, id) {
-    this.name = name;
-    this.gameID = id;
+var Player = function(data) {
+   this.id = data.id;
+   this.name = data.name;
+   this.gameID = data.gameID;
 }
 
 io.on('connection', function(socket){
@@ -107,24 +116,29 @@ io.on('connection', function(socket){
   socket.on('createGame', function(data) {
     var gameID = createGameID();
     createGame(gameID, socket.id);
-    console.log('gameID');
+
     // pass game id back to creator
     socket.join(gameID);
-    socket.emit('gameCreated', gameID)
+    socket.emit('gameCreated', gameID);
   });
 
   socket.on('joinGame', function(data) {
-      var d = JSON.parse(data);
-      response = joinGame(d);
+      data = JSON.parse(data);
+      response = joinGame(data);
 
-    if (response.err) {
-        socket.emit('joinError',response.err);
-        return;
-    }
+       if (response.err) {
+           socket.emit('joinError',response.err);
+           return;
+       }
 
-    socket.join(response.gameID);
+       socket.join(response.gameID);
 
-    socket.emit('gameJoined', JSON.stringify(response));
+       if (getGame(response.gameID).open) {
+          response.open = true;
+       }
+       
+       socket.emit('gameJoined', JSON.stringify(response));
+
   });
 
   socket.on('disconnect', function() {
@@ -136,11 +150,19 @@ io.on('connection', function(socket){
   // Receive from Buzzer
   // ---------------------------------------
   socket.on('buzz',function(data) {
-     console.log(data);
-     var d = JSON.parse(data);
-     var game = getGame(d.gameID);
-      // emit response received to proctor
-      io.to(game.proctor).emit('buzz', JSON.stringify(d))
+      var data = JSON.parse(data);
+
+      console.log(data.name + ' buzzed in');
+      var game = getGame(data.gameID);
+
+      // emit response received to player
+      socket.emit('responseReceived', game.responseOrder);
+
+      // pass on response to proctor
+      game.toProctor('responseReceived', JSON.stringify(data))
+
+      // increment response order
+      game.responseOrder++;
   });
 
   socket.on('countDownOver',function(player) {
@@ -155,14 +177,18 @@ io.on('connection', function(socket){
   // ---------------------------------------
   socket.on('gameOpen',function(id) {
       var game = getGame(id);
+      game.open = true;
+      console.log('game opened!')
 
       // emit to all players that the game is OPEN
-      socket.broadcast.to(id).emit('gameOpened', id)
+      game.toAll('gameOpened', id)
   });
 
   socket.on('gameClear',function(id) {
       var game = getGame(id);
       game.open = false;
+      game.responseOrder = 1;
+      console.log('game cleared');
 
       // emit to all players that the game is CLEARED
       socket.broadcast.to(id).emit('gameCleared')

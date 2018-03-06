@@ -1,70 +1,61 @@
-
-function renderPodiumLights() {
-   function createLight() {
-     var l = document.createElement('div');
-     l.className = 'podium_light'
-     return l;
-   }
-
-   var l = document.querySelector('.podium_lights');
-   var h = $(l).height() * 2; // multiply by 2 for two sets of lights
-   var lightHeight = 12 + 6; // 12px grid gap and 6px height
-   var lightFrag = document.createDocumentFragment();
-   var i = 0;
-   var numLights = 0;
-
-   while (i < h) {
-     lightFrag.appendChild(createLight());
-
-     i += lightHeight;
-     numLights++;
-   }
-
-   // add a final light to complete the set if we ended up with an odd number
-   if (numLights % 2) lightFrag.appendChild(createLight())
-
-   l.appendChild(lightFrag);
-}
+var _lightsOn = 48; // there are 48 total lights
+var _cancelCountdown = false;
 
 function resetPodiumLights() {
-   $('.podium_light').removeClass('is-blinking is-off is-out');
+   _lightsOn = 48;
+   $('.podium_light').removeClass('is-pulsing is-off');
 }
 
-function countDown(cb) {
-   var numLights = $('.podium_light').length;
-   var $lightsOn = $('.podium_light').not('.is-out');
+function getActiveLights() {
+   var left = $('.podium_lights--left').find('.podium_light').not('.is-off');
+   var right = $('.podium_lights--right').find('.podium_light').not('.is-off');
+
+   return [left,right];
+}
+
+function countDown(i, cb) {
+   var arrLights = getActiveLights();
    var toBlinkOut;
    var max;
    var $range;
+
+   if (_cancelCountdown) {
+      _cancelCountdown = false;
+      return
+   }
+
+   i = i || 1;
+
    // if there are only two lights left, we are on the final second of the countdown
    // NOTE: rename states later because they are confusing
-   if ($lightsOn.length === 2) {
-      $lightsOn.addClass('is-blinking');
+
+   if (_lightsOn <= 4) {
+      $range = $('.podium_light').not('.is-off');
+      $range.addClass('is-pulsing');
+
       window.setTimeout(function() {
-         $lightsOn.addClass('is-off');
-         cb();
-      },2300);
+         $range.addClass('is-off');
+         if (typeof cb === 'function') cb();
+      },2500);
+
       return;
    }
 
-   max = (Math.floor(numLights) / 4); // 4 seconds
-   max = max % 2 ? max : max - 1; // make sure max is always even
-   toBlinkOut = Math.min($lightsOn.length, max);
-
-   // leave the final two lights on for the final iteration of countdown.
-   if ($lightsOn.length - (toBlinkOut) <= 2) {
-      toBlinkOut = $lightsOn.length  - 2;
+   switch (i) {
+      case 1:
+      case 2:
+         toBlinkOut = 4;
+         break;
+      case 3: toBlinkOut = 3;
    }
 
-   $range = $lightsOn.slice($lightsOn.length - (toBlinkOut / 2), $lightsOn.length).add($lightsOn.slice(0,(toBlinkOut / 2)));
+   arrLights.forEach(function($lights,i) {
+      var len = $lights.length;
+      $range = $lights.slice(len - toBlinkOut, len).add($lights.slice(0, toBlinkOut));
+      $range.addClass('is-off');
+   })
 
-   $range.addClass('is-out');
+   _lightsOn -= toBlinkOut * 4;
 
-   setTimeout(function() {countDown(cb)},1000);
+   setTimeout(function() {countDown(i+1, cb)},1250);
 }
-// blink out lights
-
-// on receive countdown event, start counting down.
-// setTimeout(function(){
-//   countDown(seconds);
-// },1000);

@@ -17,16 +17,13 @@
    </head>
    <body>
 
-      <div id="screen" class="container">
-
-      </div>
+      <div id="screen" class="container"></div>
 
 
       <script type="text/javascript">
         var $screen = $('#screen');
         var nameValid = false;
         var idValid = false;
-
 
         // on initial load render home page inside #screen
         $.get('screens/home.html',function(res) {
@@ -41,6 +38,13 @@
             this.$buzzer = $('.buzzer');
             this.$field = $('.podium');
 
+            this.open = function() {
+               console.log('game openeed now!');
+               _cancelCountdown = false;
+               that.enabled = true;
+               that.$field.addClass('open');
+            }
+
             this.buzzIn = function($btn) {
                 if ($btn.hasClass('disabled') || $btn.hasClass('responded')) {
                     // clicks are not allowed while disabled
@@ -53,6 +57,7 @@
                     setTimeout(function() {
                         $btn.removeClass('disabled');
                     }, 250);
+
                     return;
                 }
 
@@ -66,15 +71,16 @@
             var that = this;
 
             window.socket.on('gameCleared',function(id) {
-                that.enabled = false;
-                that.$buzzer.removeClass('disabled responded');
-                that.$field.removeClass('open');
-                window.resetPodiumLights();
+               that.enabled = false;
+               $('.order').text('');
+               that.$buzzer.removeClass('disabled responded');
+               that.$field.removeClass('open');
+               window.resetPodiumLights();
+               _cancelCountdown = true;
             });
 
             window.socket.on('gameOpened',function(id) {
-                that.enabled = true;
-                that.$field.addClass('open');
+               this.open();
             });
 
             window.socket.on('countDownStart', async function(id) {
@@ -86,7 +92,12 @@
                }
 
                // alert proctor that time has expired
-               window.countDown(countDownCallback);
+               window.countDown(1, countDownCallback);
+            });
+
+            window.socket.on('responseReceived', function(num) {
+               console.log(num);
+               $('.order').text(num);
             });
 
             // attach buzzer event listener
@@ -130,7 +141,7 @@
             // -------------------------
             // websocket listeners
             // -------------------------
-            this.socket.on('buzz', function(player) {
+            this.socket.on('responseReceived', function(player) {
                player = JSON.parse(player);
                that.appendRespondent(player);
             });
@@ -144,7 +155,7 @@
                 $(this).addClass('has-responded');
                 // need player id
                 that.socket.emit('countDownStart', this.id);
-            })
+            });
         }
 
       </script>

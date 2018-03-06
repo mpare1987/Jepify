@@ -184,14 +184,16 @@ input {
   border-right: 17px solid #343434; }
   .podium_lights {
     position: absolute;
-    display: grid;
-    justify-items: center;
-    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     height: 100%;
-    grid-template-columns: 17px 17px;
-    grid-gap: 12px 100%;
-    margin: 0 -17px;
-    padding: 8px 0; }
+    padding: 16px 0;
+    width: 17px; }
+    .podium_lights--left {
+      left: -17px; }
+    .podium_lights--right {
+      right: -17px; }
   .podium_light {
     position: relative;
     width: 100%; }
@@ -224,14 +226,12 @@ input {
       animation-timing-function: linear; }
       .open .podium_light:after {
         visibility: visible; }
-    .podium_light.is-out:after {
-      animation: blinkOut .2s 1 forwards;
-      animation-timing-function: ease-in-out; }
-    .podium_light.is-blinking:after {
-      animation: blink .75s infinite;
+    .podium_light.is-pulsing:after {
+      animation: strong-pulse .85s infinite;
       animation-timing-function: ease-in-out; }
     .podium_light.is-off:after {
-      visibility: hidden; }
+      animation: flash-out .2s 1 forwards;
+      animation-timing-function: ease-in-out; }
 
 @keyframes light-pulse {
   0% {
@@ -241,7 +241,7 @@ input {
   100% {
     box-shadow: 0 0 2px #fff; } }
 
-@keyframes blink {
+@keyframes strong-pulse {
   0% {
     box-shadow: 0 0 0px #fff;
     transform: scale(1); }
@@ -249,7 +249,7 @@ input {
     box-shadow: 0 0 16px #fff;
     transform: scale(1.04); } }
 
-@keyframes blinkOut {
+@keyframes flash-out {
   0% {
     box-shadow: 0 0 8px #fff;
     transform: scale(1.1); }
@@ -260,6 +260,11 @@ input {
   100% {
     transform: scale(0);
     opacity: 0; } }
+
+.order {
+  font-weight: bold;
+  font-size: 48px;
+  text-align: center; }
 
 .players-list {
   margin-bottom: 60px;
