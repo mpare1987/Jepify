@@ -1,5 +1,5 @@
 var _lightsOn = 48; // there are 48 total lights
-var _cancelCountdown = false;
+window.countdownTimer = null;
 
 function resetPodiumLights() {
    _lightsOn = 48;
@@ -15,47 +15,36 @@ function getActiveLights() {
 
 function countDown(i, cb) {
    var arrLights = getActiveLights();
-   var toBlinkOut;
+   var toBlinkOut = 0;
    var max;
    var $range;
 
-   if (_cancelCountdown) {
-      _cancelCountdown = false;
+   if (_lightsOn <= 0) {
       return
    }
 
    i = i || 1;
 
-   // if there are only two lights left, we are on the final second of the countdown
-   // NOTE: rename states later because they are confusing
-
-   if (_lightsOn <= 4) {
-      $range = $('.podium_light').not('.is-off');
-      $range.addClass('is-pulsing');
-
-      window.setTimeout(function() {
-         $range.addClass('is-off');
-         if (typeof cb === 'function') cb();
-      },2500);
-
-      return;
-   }
-
    switch (i) {
       case 1:
       case 2:
-         toBlinkOut = 4;
+      case 3:
+         toBlinkOut = 3;
          break;
-      case 3: toBlinkOut = 3;
+      case 4:
+         toBlinkOut = 2
+      case 5:
+         toBlinkOut = 1;
+         break;
    }
 
    arrLights.forEach(function($lights,i) {
       var len = $lights.length;
       $range = $lights.slice(len - toBlinkOut, len).add($lights.slice(0, toBlinkOut));
       $range.addClass('is-off');
-   })
+   });
 
    _lightsOn -= toBlinkOut * 4;
 
-   setTimeout(function() {countDown(i+1, cb)},1250);
+   window.countdownTimer = setTimeout(function() {countDown(i+1, cb)},1500);
 }

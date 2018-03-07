@@ -19,7 +19,6 @@
 
       <div id="screen" class="container"></div>
 
-
       <script type="text/javascript">
         var $screen = $('#screen');
         var nameValid = false;
@@ -39,8 +38,6 @@
             this.$field = $('.podium');
 
             this.open = function() {
-               console.log('game openeed now!');
-               _cancelCountdown = false;
                that.enabled = true;
                that.$field.addClass('open');
             }
@@ -71,22 +68,20 @@
             var that = this;
 
             window.socket.on('gameCleared',function(id) {
+               console.log('game cleared!');
+               window.clearTimeout(window.countdownTimer);
                that.enabled = false;
-               $('.order').text('');
                that.$buzzer.removeClass('disabled responded');
                that.$field.removeClass('open');
+               $('.order').text('');
                window.resetPodiumLights();
-               _cancelCountdown = true;
             });
 
             window.socket.on('gameOpened',function(id) {
-               this.open();
+               that.open();
             });
 
             window.socket.on('countDownStart', async function(id) {
-               await new Promise(function(resolve) {
-                  setTimeout(resolve,500);
-               });
                function countDownCallback() {
                   window.socket.emit('countDownOver', JSON.stringify(that));
                }
@@ -96,7 +91,6 @@
             });
 
             window.socket.on('responseReceived', function(num) {
-               console.log(num);
                $('.order').text(num);
             });
 
@@ -152,6 +146,9 @@
             });
 
             $(document).on('click','.player',function() {
+               // don't start a second countdown;
+               if ($(this).hasClass('has-responded')) return;
+
                 $(this).addClass('has-responded');
                 // need player id
                 that.socket.emit('countDownStart', this.id);
