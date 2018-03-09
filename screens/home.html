@@ -36,6 +36,7 @@
     var $playerName = $('#playerName');
     var $btnJoin = $('#joinGame');
     var _gamesExist = false;
+    var _requestBegun = false;
     var getGamesTimer = null;
 
     if (localStorage.playerName) {
@@ -58,15 +59,17 @@
         $playerName.trigger('validate');
     })
 
-    getGamesRequester(true);
 
-    function getGamesRequester(isFirst) {
+    function getGamesRequester() {
+        if (_requestBegun) {
+            _requestBegun = true;
+        }
+        console.log('doing get games request');
         if (_gamesExist) {
             return;
         }
 
         socket.emit('getGames',socket.id);
-
     }
 
     $playerName.on('keyup blur validate',function(e) {
@@ -141,5 +144,14 @@
    socket.on('joinError', function(msg) {
        console.warn('could not join game');
        $('.joinError').text(msg);
+   })
+
+
+   getGamesRequester(true);
+
+   $(window).load(function() {
+       if (!_requestBegun) {
+           getGamesRequester();
+       }
    })
 </script>
