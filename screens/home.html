@@ -149,7 +149,7 @@
 
    getGamesRequester(true);
 
-   $(window).load(function() {
+   $(window).on('load',function() {
        if (!_requestBegun) {
            getGamesRequester();
        }
