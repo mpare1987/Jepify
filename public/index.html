@@ -24,10 +24,18 @@
         var nameValid = false;
         var idValid = false;
 
-        // on initial load render home page inside #screen
-        $.get('screens/home.html',function(res) {
-            $screen.append(res);
-        })
+        if (window.location.href.indexOf('trebek') > -1) {
+            // on initial load render home page inside #screen
+            $.get('screens/trebek.html',function(res) {
+                $screen.append(res);
+            });
+
+        } else {
+            // on initial load render home page inside #screen
+            $.get('screens/home.html',function(res) {
+                $screen.append(res);
+            });
+        }
 
         var Buzzer = function(config) {
             this.id = socket.id;
@@ -153,7 +161,7 @@
                 // need player id
                 that.socket.emit('countDownStart', this.id);
             });
-        }
+        };
 
       </script>
 

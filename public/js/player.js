@@ -32,8 +32,9 @@ function countDown(i, cb) {
          toBlinkOut = 3;
          break;
       case 4:
-         toBlinkOut = 2
-      case 5:
+         toBlinkOut = 2;
+         break;
+      default:
          toBlinkOut = 1;
          break;
    }
@@ -46,5 +47,5 @@ function countDown(i, cb) {
 
    _lightsOn -= toBlinkOut * 4;
 
-   window.countdownTimer = setTimeout(function() {countDown(i+1, cb)},1500);
+   window.countdownTimer = setTimeout(function() {countDown(i+1, cb)},1250);
 }

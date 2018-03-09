@@ -22,6 +22,10 @@ app.get('/screens/proctor.html', function(req, res){
    res.sendFile(__dirname + '/screens/proctor.html');
 });
 
+app.get('/screens/trebek.html', function(req, res){
+   res.sendFile(__dirname + '/screens/trebek.html');
+});
+
 http.listen(3000, function(){
   console.log('listening on *:3000');
 });
@@ -136,7 +140,7 @@ io.on('connection', function(socket){
        if (getGame(response.gameID).open) {
           response.open = true;
        }
-       
+
        socket.emit('gameJoined', JSON.stringify(response));
 
   });
@@ -197,5 +201,18 @@ io.on('connection', function(socket){
   socket.on('countDownStart',function(playerID) {
       // start countdown for player
       io.to(playerID).emit('countDownStart', {})
+  });
+
+  socket.on('getGames',function(playerID) {
+      // start countdown for player
+      var strGames = ""
+      games.forEach(function(game,i) {
+          strGames += game.id;
+          if (i !== games.length - 1) {
+              strGames += ','
+          }
+      });
+
+      io.to(playerID).emit('gotGames', strGames)
   });
 });

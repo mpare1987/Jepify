@@ -98,6 +98,11 @@ input {
 
   }
 
+  &[disabled] {
+      opacity:.5;
+      background-color:#aaa;
+  }
+
   &:active {
     top: 1px;
   }

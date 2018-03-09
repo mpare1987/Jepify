@@ -1,0 +1,31 @@
+<div class="container_inner">
+    <div class="" id="createGameWrap" style="margin-bottom:48px;">
+        <h2>Create a new game</h2>
+        <button id="createGame" class="btn btn--pos"  name="button">Create Game</button>
+    </div>
+</div>
+
+<script>
+    $(document).on('click', '#createGame',function(e) {
+        socket.emit('createGame', socket.id);
+    });
+
+    // create game
+    socket.on('gameCreated',function(gameID) {
+         var w = window;
+
+         $.get('screens/proctor.html',function(res) {
+            $screen.html(res);
+
+            $('#gameID').html('Game ID: ' + gameID);
+
+            w.proctor = new Proctor(gameID);
+            var shareUrl = window.location.origin + '?id=' + window.proctor.gameID + '&create=0';
+
+            $('#shareURL')
+                .attr('href', shareUrl)
+                .text(shareUrl);
+
+         });
+    });
+</script>

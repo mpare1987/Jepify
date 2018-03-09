@@ -61,6 +61,9 @@ input {
     background: #119619; }
   .btn--neg {
     background: #e23333; }
+  .btn[disabled] {
+    opacity: .5;
+    background-color: #aaa; }
   .btn:active {
     top: 1px; }
 
