@@ -26,7 +26,7 @@
 
         if (window.location.href.indexOf('trebek') > -1) {
             // on initial load render home page inside #screen
-            $.get('screens/trebek.html',function(res) {
+            $.get('screens/proctor.html',function(res) {
                 $screen.append(res);
             });
 
@@ -91,6 +91,7 @@
 
             window.socket.on('countDownStart', async function(id) {
                function countDownCallback() {
+                  console.log('countdown end')
                   window.socket.emit('countDownOver', JSON.stringify(that));
                }
 

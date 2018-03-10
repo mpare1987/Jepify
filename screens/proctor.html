@@ -1,11 +1,9 @@
 <div class="container_inner">
-    <div><strong>Share this link.</strong></div>
-    <p style="margin-bottom:48px;" ><a id="shareURL" href="#"></a></p>
-    <h1 id="gameID"></h1>
+    <h1 id="gameID" style="color:#aaa;">Game ID: 0000</h1>
     <br><br>
-    <button id="open" class="btn btn--pos">Open</button>
+    <button id="open" class="btn btn--pos" disabled>Open</button>
 
-    <button id="clear" class="btn btn--neg">Clear</button>
+    <button id="clear" class="btn btn--neg" disabled>Clear</button>
 
     <!-- append respndents in order of response here -->
     <ul id="respondent-list" class="players-list">
@@ -14,7 +12,16 @@
 </div>
 
 <script type="text/javascript">
-    $(document).on('click', '#shareURL', function(e){
-      e.preventDefault();
-    })
+
+    socket.emit('createGame', socket.id);
+
+    // create game
+    socket.on('gameCreated',function(gameID) {
+         $('#gameID').html('Game ID: ' + gameID);
+
+         var proctor = new Proctor(gameID);
+
+         $('button').removeAttr('disabled');
+         $('#gameID').removeAttr('style');
+    });
 </script>

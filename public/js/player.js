@@ -18,8 +18,8 @@ function countDown(i, cb) {
    var toBlinkOut = 0;
    var max;
    var $range;
-
    if (_lightsOn <= 0) {
+      cb();
       return
    }
 

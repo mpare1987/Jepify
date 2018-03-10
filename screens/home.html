@@ -4,16 +4,9 @@
        <!-- append join error here -->
     </div>
 
-
     <h2>Join a game</h2>
-    <input id="gameID" type="text" name="" style="opacity:0;position:absolute;left:-9999px;" placeholder="enter game ID" value="">
 
-    <!-- <div id="gameIDWrap">
-        <label for="gameID">Game ID</label>
-        <input id="gameID" type="text" name="" placeholder="enter game ID" value="">
-        <br><br>
-    </div> -->
-
+     <!-- <input id="gameID" type="text" name="" style="position:absolute;opacity:0;left:-999px;" placeholder="enter game ID" value=""> -->
 
     <label for="playerName">Your Name</label>
     <input id="playerName" type="text" name="playerName" placeholder="Enter your name" value="">
@@ -28,7 +21,7 @@
     </div>
     <br><br>
 
-    <button id="joinGame" type="button" class="btn btn--pos is-disabled" name="button" disabled>Join Game</button>
+    <button id="joinGame" type="button" class="btn btn--pos is-disabled" name="button" disabled>Join Game</button><select id="gameID" class="" name="gameID" style="display:none;"></select>
 </div>
 
 <script type="text/javascript">
@@ -38,10 +31,7 @@
     var _gamesExist = false;
     var _requestBegun = false;
     var getGamesTimer = null;
-
-    if (localStorage.playerName) {
-        $playerName.val(localStorage.playerName);
-    }
+    var arrGames = [];
 
     socket.on('gotGames',function(strGames) {
         if (!strGames.length) {
@@ -49,25 +39,26 @@
             getGamesTimer = window.setTimeout(getGamesRequester,1000);
             return;
         }
+        _gamesExist = true;
         arrGames = strGames.split(',');
-        // use last created game for now.
+
+        arrGames.forEach(function(id,i) {
+            $gameID.append('<option value="' + id + '">' + id + '</option')
+        });
+        window.clearTimeout(getGamesTimer);
+
+        // default to last created game for now.
         $gameID.val(arrGames[arrGames.length - 1]);
 
-        _gamesExist = true;
-        window.clearTimeout(getGamesTimer);
         $playerName.trigger('validate');
-        $playerName.trigger('validate');
+
+        if (arrGames.length > 1) {
+           $gameID.show();
+        }
     })
 
-
     function getGamesRequester() {
-        if (_requestBegun) {
-            _requestBegun = true;
-        }
-        console.log('doing get games request');
-        if (_gamesExist) {
-            return;
-        }
+        if (_gamesExist) return;
 
         socket.emit('getGames',socket.id);
     }
@@ -110,9 +101,8 @@
         $(this).siblings().removeClass('is-selected');
 
         window.buzzerColor = $(this).data().swatchColor
-    })
+    });
 
-    $playerName.trigger('validate');
 
    // join game
    socket.on('gameJoined', function(data) {
@@ -147,11 +137,20 @@
    })
 
 
+   if (localStorage.playerName) {
+      $playerName.val(localStorage.playerName);
+   }
+
+
+
    getGamesRequester(true);
 
    $(window).on('load',function() {
        if (!_requestBegun) {
            getGamesRequester();
        }
+
+       $playerName.trigger('validate');
    })
+
 </script>
