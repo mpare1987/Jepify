@@ -44,6 +44,7 @@
             this.enabled = false;
             this.$buzzer = $('.buzzer');
             this.$field = $('.podium');
+            this.sound = new Audio('bike-honk.mp3');
 
             this.open = function() {
                that.enabled = true;
@@ -67,6 +68,7 @@
                 }
 
                 this.$buzzer.addClass('responded');
+                this.sound.play();
                 window.socket.emit('buzz', JSON.stringify(this));
             };
 
