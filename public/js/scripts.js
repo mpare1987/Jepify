@@ -12,7 +12,6 @@ var Game = function(id) {
     this.enabled = false;
     this.$field.removeClass('open');
   };
-
   this.setRespondent = function(name) {
     this.$respondent.text(name)
   }

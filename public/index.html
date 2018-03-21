@@ -44,8 +44,8 @@
             this.enabled = false;
             this.$buzzer = $('.buzzer');
             this.$field = $('.podium');
-            this.sound = new Audio('bike-honk.mp3');
-
+            this.sound = new Audio(config.sound);
+            
             this.open = function() {
                that.enabled = true;
                that.$field.addClass('open');

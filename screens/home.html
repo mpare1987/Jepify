@@ -19,7 +19,19 @@
         <div class="swatch-grid_swatch swatch-grid_swatch--blue js-swatch" data-swatch-color="blue"></div>
         <div class="swatch-grid_swatch swatch-grid_swatch--pink js-swatch" data-swatch-color="pink"></div>
     </div>
-    <br><br>
+    <br>
+
+    <label for="buzzerSound">Buzzer Sound</label>
+    <br>
+    <select id="buzzerSound">
+      <option value="bikeHonk.mp3" selected>Bike Honk</option>
+      <option value="rooster.mp3">Cock a doodle doo</option>
+      <option value="buzz.mp3">Buzz</option>
+      <option value="airhorn.mp3">Air Horn</option>
+      <option value="excuseMe.mp3">Excuse Me</option>
+      <option value="loon.wav">The Way Life Should Be</option>
+   </select>
+   <br><br><br>
 
     <button id="joinGame" type="button" class="btn btn--pos is-disabled" name="button" disabled>Join Game</button><select id="gameID" class="" name="gameID" style="display:none;"></select>
 </div>
@@ -93,6 +105,8 @@
             id:window.socket.id
         });
 
+        window.buzzerSound = document.getElementById('buzzerSound').value;
+
         socket.emit('joinGame', JSON.stringify(data));
     });
 
@@ -108,7 +122,10 @@
    socket.on('gameJoined', function(data) {
        var d = JSON.parse(data);
        var w = window;
+
+       d.sound = w.buzzerSound;
        localStorage.playerName = d.name;
+       localStorage.sound = d.sound;
 
        /*
           data.gameID = string (id of game joined);
