@@ -45,7 +45,7 @@
             this.$buzzer = $('.buzzer');
             this.$field = $('.podium');
             this.sound = new Audio(config.sound);
-            
+
             this.open = function() {
                that.enabled = true;
                that.$field.addClass('open');
@@ -68,8 +68,10 @@
                 }
 
                 this.$buzzer.addClass('responded');
-                this.sound.play();
+
                 window.socket.emit('buzz', JSON.stringify(this));
+
+                this.sound.play();
             };
 
             // -------------------------
