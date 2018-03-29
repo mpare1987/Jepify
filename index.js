@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-
+const port = process.env.PORT || 3000
 app.use(express.static(__dirname + '/public'));
 app.use(express.static("public"));
 
@@ -26,8 +26,8 @@ app.get('/screens/trebek.html', function(req, res){
    res.sendFile(__dirname + '/screens/trebek.html');
 });
 
-http.listen(3000, function(){
-  console.log('listening on *:3000');
+http.listen(port || 3000, function(){
+  console.log('listening on:  *' + port);
 });
 
 var createGameID = function() {
