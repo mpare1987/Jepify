@@ -28,9 +28,12 @@
       <option value="rooster.mp3">Cock a doodle doo</option>
       <option value="buzz.mp3">Buzz</option>
       <option value="airHorn.mp3">Air Horn</option>
-      <option value="ExcuseMe.mp3">Excuse Me</option>
-      <option value="loon.mp3">The Way Life Should Be</option>
       <option value="youGotmail.mp3">AOL</option>
+      <option value="chewbacca.mp3">Let the wookie win</option>
+      <option value="loon.mp3">The Way Life Should Be</option>
+      <option value="dean-scream.mp3">We're gonna take back the white house</option>
+      <option value="mine.mp3">Mine?</option>
+
    </select>
    <br><br><br>
 
@@ -43,13 +46,19 @@
     var $btnJoin = $('#joinGame');
     var _gamesExist = false;
     var _requestBegun = false;
-    var getGamesTimer = null;
+    var _gameJoined = false;
+    var getGamesRequester = null;
     var arrGames = [];
+
+    function getGames() {
+      if (_gameJoined || _requestBegun) return;
+
+      socket.emit('getGames',socket.id);
+    }
 
     socket.on('gotGames',function(strGames) {
         if (!strGames.length) {
             console.warn('no active games. Will search again in 1000ms');
-            getGamesTimer = window.setTimeout(getGamesRequester,1000);
             return;
         }
         _gamesExist = true;
@@ -58,7 +67,6 @@
         arrGames.forEach(function(id,i) {
             $gameID.append('<option value="' + id + '">' + id + '</option')
         });
-        window.clearTimeout(getGamesTimer);
 
         // default to last created game for now.
         $gameID.val(arrGames[arrGames.length - 1]);
@@ -69,12 +77,6 @@
            $gameID.show();
         }
     })
-
-    function getGamesRequester() {
-        if (_gamesExist) return;
-
-        socket.emit('getGames',socket.id);
-    }
 
     $playerName.on('keyup blur validate',function(e) {
         if (e.type === 'keyup') {
@@ -123,6 +125,9 @@
    socket.on('gameJoined', function(data) {
        var d = JSON.parse(data);
        var w = window;
+       _gameJoined = true;
+
+       window.clearInterval(getGamesRequester);
 
        d.sound = w.buzzerSound;
        localStorage.playerName = d.name;
@@ -159,16 +164,11 @@
       $playerName.val(localStorage.playerName);
    }
 
+    $(window).on('load',function() {
+      getGames();
+      getGamesRequester = window.setInterval(getGames,2000);
 
-
-   getGamesRequester(true);
-
-   $(window).on('load',function() {
-       if (!_requestBegun) {
-           getGamesRequester();
-       }
-
-       $playerName.trigger('validate');
-   })
+      $playerName.trigger('validate');
+    })
 
 </script>
