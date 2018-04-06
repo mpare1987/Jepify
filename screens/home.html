@@ -48,24 +48,26 @@
     var $playerName = $('#playerName');
     var $btnJoin = $('#joinGame');
     var _gamesExist = false;
-    var _requestBegun = false;
     var _gameJoined = false;
     var getGamesRequester = null;
     var arrGames = [];
 
     function getGames() {
-      if (_gameJoined || _requestBegun) return;
+
+      if (_gameJoined) return;
 
       socket.emit('getGames',socket.id);
     }
 
     socket.on('gotGames',function(strGames) {
         if (!strGames.length) {
-            console.warn('no active games. Will search again in 1000ms');
+            console.warn('no active games');
             return;
         }
+
         _gamesExist = true;
         arrGames = strGames.split(',');
+        console.log('found ' + arrGames.length + ' games');
 
         arrGames.forEach(function(id,i) {
             $gameID.append('<option value="' + id + '">' + id + '</option')
