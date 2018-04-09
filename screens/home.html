@@ -169,11 +169,9 @@
       $playerName.val(localStorage.playerName);
    }
 
-    $(window).on('load',function() {
-      getGames();
-      getGamesRequester = window.setInterval(getGames,2000);
+    getGames();
+    getGamesRequester = window.setInterval(getGames,2000);
 
-      $playerName.trigger('validate');
-    })
+    $playerName.trigger('validate');
 
 </script>
