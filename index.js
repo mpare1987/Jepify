@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const http = require('http').Server(app);
+const https = require('https');
 const io = require('socket.io')(http);
 const port = process.env.PORT || 3000
 app.use(express.static(__dirname + '/public'));
@@ -113,6 +114,30 @@ var Player = function(data) {
    this.gameID = data.gameID;
 }
 
+var sendSlackMessage = function(msg) {
+   var body = { 'text': msg }
+
+   var options = {
+      hostname: 'hooks.slack.com',
+      port: 443,
+      path: '/services/T0H8JDU2V/BAH23Q5B6/9dvATEOHQ27aX3isw7uCTH4L',
+      method: 'POST'
+    };
+
+   var req = https.request(options, (res) => {
+      res.on('data', (d) => {
+         process.stdout.write(d);
+      })
+   })
+
+   req.on('error', (e) => {
+      console.error(e);
+   });
+   
+   req.write(JSON.stringify(body));
+   req.end();
+}
+
 io.on('connection', function(socket){
   console.log('++++ a user connected');
 
@@ -186,6 +211,9 @@ io.on('connection', function(socket){
 
       // emit to all players that the game is OPEN
       game.toAll('gameOpened', id)
+
+      // send message to slack channel game has started
+      sendSlackMessage('Game is about to start! Head to the third floor! DO IT NOW');
   });
 
   socket.on('gameClear',function(id) {
