@@ -149,6 +149,9 @@ io.on('connection', function(socket){
     // pass game id back to creator
     socket.join(gameID);
     socket.emit('gameCreated', gameID);
+
+   // send message to slack channel game has started
+   sendSlackMessage('Game is about to start! Head to the third floor. DO IT NOW!');
   });
 
   socket.on('joinGame', function(data) {
@@ -211,9 +214,6 @@ io.on('connection', function(socket){
 
       // emit to all players that the game is OPEN
       game.toAll('gameOpened', id)
-
-      // send message to slack channel game has started
-      sendSlackMessage('Game is about to start! Head to the third floor! DO IT NOW');
   });
 
   socket.on('gameClear',function(id) {
