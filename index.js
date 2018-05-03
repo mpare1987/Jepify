@@ -151,7 +151,7 @@ io.on('connection', function(socket){
     socket.emit('gameCreated', gameID);
 
    // send message to slack channel game has started
-   sendSlackMessage('Game is about to start! Head to the third floor. DO IT NOW!');
+   sendSlackMessage('Game is about to start! Head to the third floor. DO IT NOW!\nhttps://media.giphy.com/media/58FdJJKWTGqjy1BXne/giphy.gif');
   });
 
   socket.on('joinGame', function(data) {
