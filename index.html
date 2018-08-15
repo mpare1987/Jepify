@@ -1,137 +1,180 @@
-<!DOCTYPE html>
-<html>
+<div class="container_inner">
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <div class="joinError">
+       <!-- append join error here -->
+    </div>
 
-  <title>Jeopardy</title>
-  <link rel="stylesheet" href="/public/style.css">
+    <h2>Join a game</h2>
 
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    // exposes an "io" global, with a default connection to the host that serves the page
-    var socket = io();
-  </script>
-</head>
+     <!-- <input id="gameID" type="text" name="" style="position:absolute;opacity:0;left:-999px;" placeholder="enter game ID" value=""> -->
 
-<body>
+    <label for="playerName">Your Name</label>
+    <input id="playerName" type="text" name="playerName" placeholder="Enter your name" value="">
+    <br><br>
 
-  <div id="screen" class="container">
+    <p>Buzzer Color:</p>
+    <div class="swatch-grid">
+        <div class="swatch-grid_swatch swatch-grid_swatch--red is-selected js-swatch" data-swatch-color="red"></div>
+        <div class="swatch-grid_swatch swatch-grid_swatch--green js-swatch" data-swatch-color="green"></div>
+        <div class="swatch-grid_swatch swatch-grid_swatch--blue js-swatch" data-swatch-color="blue"></div>
+        <div class="swatch-grid_swatch swatch-grid_swatch--pink js-swatch" data-swatch-color="pink"></div>
+    </div>
+    <br>
 
-  </div>
+    <label for="buzzerSound">Buzzer Sound</label>
+    <br>
+    <select id="buzzerSound">
+        <option value="airHorn.mp3">Air Horn</option>
+        <option value="bikeHonk.mp3" selected>Bike Honk</option>
+        <option value="cardi-b.mp3">Cardi B</option>
+        <option value="dean-scream.mp3">Dean Scream</option>
+        <option value="its-been.mp3">It's been</option>
+        <option value="loon.mp3">LOON</option>
+        <option value="mike-mike-mike.mp3">MikeMikeMike</option>
+        <option value="mine.mp3">Mine?</option>
+        <option value="playoffs.mp3">Playoffs?</option>
+        <option value="poke-center.mp3">Poke Center</option>
+        <option value="toolman.mp3">Toolman</option>
+        <option value="wilhelm-scream.mp3">Wilhelm Scream</option>
+        <option value="unacceptable.mp3">Unacceptable!</option>
+        <option value="xp-startup.mp3">XP</option>
 
 
-  <script type="text/javascript">
-    var $screen = $('#screen');
-    var nameValid = false;
-    var idValid = false;
+   </select>
+   <br><br><br>
 
+    <button id="joinGame" type="button" class="btn btn--pos is-disabled" name="button" disabled>Join Game</button><select id="gameID" class="" name="gameID" style="display:none;"></select>
+</div>
 
-    // on initial load render home page inside #screen
-    $.get('screens/home.html', function(res) {
-      $screen.append(res);
+<script type="text/javascript">
+    var $gameID = $('#gameID');
+    var $playerName = $('#playerName');
+    var $btnJoin = $('#joinGame');
+    var _gamesExist = false;
+    var _gameJoined = false;
+    var getGamesRequester = null;
+    var arrGames = [];
+
+    function getGames() {
+
+      if (_gameJoined) return;
+
+      socket.emit('getGames',socket.id);
+    }
+
+    socket.on('gotGames',function(strGames) {
+        if (!strGames.length) {
+            console.warn('no active games');
+            return;
+        }
+
+        _gamesExist = true;
+        arrGames = strGames.split(',');
+        console.log('found ' + arrGames.length + ' games');
+
+        arrGames.forEach(function(id,i) {
+            $gameID.append('<option value="' + id + '">' + id + '</option')
+        });
+
+        // default to last created game for now.
+        $gameID.val(arrGames[arrGames.length - 1]);
+
+        $playerName.trigger('validate');
+
+        if (arrGames.length > 1) {
+           $gameID.show();
+        }
     })
 
-    var Buzzer = function(config) {
-      this.id = socket.id;
-      this.name = config.name;
-      this.gameID = config.gameID;
-      this.enabled = false;
-      this.$buzzer = $('.buzzer');
-      this.$field = $('.podium');
-
-      this.buzzIn = function($btn) {
-        var that = this;
-
-        if ($btn.hasClass('disabled') || $btn.hasClass('responded')) {
-          // clicks are not allowed while disabled
-          return;
+    $playerName.on('keyup blur validate',function(e) {
+        if (e.type === 'keyup') {
+            $('.joinError').text('');
         }
 
-        if (this.enabled === false) {
-          // disable buzzer for 250ms because the game is not open for responses yet
-          $btn.addClass('disabled');
-          setTimeout(function() {
-            $btn.removeClass('disabled');
-          }, 250);
-          return;
+        if (!_gamesExist) return;
+
+        var val = $(this).val();
+
+        if (!val.length) {
+            nameValid = false;
+            $btnJoin.attr('disabled', 'disabled');
+            return;
+        } else {
+            $btnJoin.removeAttr('disabled', '');
+
         }
 
-        this.$buzzer.addClass('responded');
-        socket.emit('buzz', JSON.stringify(this));
-      };
+        nameValid = true;
+    });
 
-      // -------------------------
-      // websocket listeners
-      // -------------------------
-      var that = this;
+    $(document).on('click', '#joinGame',function(e) {
+        // will route to /player if successful or pop error if not
+        // window.joinGame($gameID.val())
+        var data = JSON.stringify({
+            name:$playerName.val(),
+            gameID:$gameID.val(),
+            id:window.socket.id
+        });
 
-      socket.on('gameCleared', function(id) {
-        that.enabled = false;
-        that.$buzzer.removeClass('disabled responded');
-        that.$field.removeClass('open');
-      });
+        window.buzzerSound = document.getElementById('buzzerSound').value;
 
-      socket.on('gameOpened', function(id) {
-        that.enabled = true;
-        that.$field.addClass('open');
-      });
+        socket.emit('joinGame', JSON.stringify(data));
+    });
 
-      // attach buzzer event listener
-      this.$buzzer.on('click', function() {
-        that.buzzIn($(this));
-      });
-    };
+    $(document).on('click touchend','.js-swatch',function() {
+        $(this).addClass('is-selected')
+        $(this).siblings().removeClass('is-selected');
 
-    var Proctor = function(gameID) {
-      this.socket = socket;
-      this.id = this.socket.id;
-      this.gameID = gameID;
-      this.$btnOpen = $('#open');
-      this.$btnClear = $('#clear');
-      this.$respondents = $('#respondent-list');
+        window.buzzerColor = $(this).data().swatchColor
+    });
 
-      this.open = function() {
-        var data = this.gameID;
-        this.socket.emit('gameOpen', data);
-      }
 
-      this.clear = function() {
-        console.log('clearing game!')
-        this.socket.emit('gameClear', this.gameID);
-      }
+   // join game
+   socket.on('gameJoined', function(data) {
+       var d = JSON.parse(data);
+       var w = window;
+       _gameJoined = true;
 
-      this.appendRespondent = function(name) {
-        this.$respondents.append('<li class="player">' + name + '</li>');
-      }
-      // attach event listeners
-      var that = this;
-      var s = socket;
-      this.$btnOpen.on('click', function() {
-        that.open();
-      });
+       window.clearInterval(getGamesRequester);
 
-      this.$btnClear.on('click', function() {
-        that.clear();
-        that.$respondents.text('');
-      });
+       d.sound = w.buzzerSound;
+       localStorage.playerName = d.name;
+       localStorage.sound = d.sound;
 
-      // -------------------------
-      // websocket listeners
-      // -------------------------
-      socket.on('buzz', function(name) {
-        that.appendRespondent(name);
-      });
+       /*
+          data.gameID = string (id of game joined);
+          data.name = string (player's name);
+          data.proctor = string (proctorID)
+       */
 
-      $(document).on('click', '.player', function() {
-        $(this).addClass('has-responded');
-      })
+       $.get('screens/player.html',function(res) {
+            $screen.html(res);
+            $('#gameID').html('Game ID: ' + d.gameID);
+            $('#playerName').html(d.name);
+            w.buzzer = new Buzzer(d);
 
-    }
-  </script>
+            if (d.open) {
+               w.buzzer.open();
+            }
 
-</body>
+            $('.js-buzzer').addClass('buzzer--' + window.buzzerColor)
+       });
+   });
 
-</html>
+   // join game
+   socket.on('joinError', function(msg) {
+       console.warn('could not join game');
+       $('.joinError').text(msg);
+   })
+
+
+   if (localStorage.playerName) {
+      $playerName.val(localStorage.playerName);
+   }
+
+    getGames();
+    getGamesRequester = window.setInterval(getGames,2000);
+
+    $playerName.trigger('validate');
+
+</script>
