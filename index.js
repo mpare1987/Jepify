@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const https = require('https');
+const http2 = require('http');
 const io = require('socket.io')(http);
 const port = process.env.PORT || 3000
 app.use(express.static(__dirname + '/public'));
@@ -151,7 +152,7 @@ io.on('connection', function(socket){
     socket.emit('gameCreated', gameID);
 
    // send message to slack channel game has started
-   sendSlackMessage('Game is starting IN FIVE MINUTES! Head to the third floor. DO IT NOW!\nhttps://media.giphy.com/media/58FdJJKWTGqjy1BXne/giphy.gif');
+   //sendSlackMessage('Game is starting IN FIVE MINUTES! Head to the third floor. DO IT NOW!\nhttps://media.giphy.com/media/58FdJJKWTGqjy1BXne/giphy.gif');
   });
 
   socket.on('joinGame', function(data) {
@@ -224,7 +225,34 @@ io.on('connection', function(socket){
 
       // emit to all players that the game is CLEARED
       socket.broadcast.to(id).emit('gameCleared')
-  })
+  });
+
+   socket.on('newClue',function(id) {
+      var game = getGame(id);
+      game.open = true;
+
+      var options = {
+         hostname: 'jservice.io',
+         path: '/api/random?count=1',
+         method: 'GET'
+       };
+
+      var req = http2.request(options, (res) => {
+         res.setEncoding('utf8');
+         let rawData = '';
+         res.on('data', (chunk) => { rawData += chunk; });
+         res.on('end', () => {
+            try {
+               const parsedData = JSON.parse(rawData);
+               game.toProctor('clueCreated', rawData);
+            } catch (e) {
+
+            }
+         });
+      })
+
+      req.end();
+   })
 
   socket.on('countDownStart',function(playerID) {
       // start countdown for player

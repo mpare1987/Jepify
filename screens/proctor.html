@@ -5,6 +5,17 @@
 
     <button id="clear" class="btn btn--neg" disabled>Clear</button>
 
+    <br><br>
+    <div id="clueCat"></div>
+    <br>
+    <div id="clueText"></div>
+    <br>
+    <div id='clueAnswer'></div>
+    <br>
+    <div id='counter'></div>
+    <br>
+    <button id="newClue" class="btn btn--pos">New Clue</button>
+
     <!-- append respndents in order of response here -->
     <ul id="respondent-list" class="players-list">
 
@@ -12,6 +23,8 @@
 </div>
 
 <script type="text/javascript">
+
+   var counter = 1;
 
     socket.emit('createGame', socket.id);
 
@@ -24,4 +37,15 @@
          $('button').removeAttr('disabled');
          $('#gameID').removeAttr('style');
     });
+
+    socket.on('clueCreated', function(data) {
+      var clue = JSON.parse(data);
+      $('#clueCat').html('<b>Category:</b> ' + clue[0].category.title + ' (' + new Date(clue[0].airdate).getUTCFullYear() + ')');
+      $('#clueText').html(clue[0].question);
+      $('#clueAnswer').html('<b>Answer:</b> ' + clue[0].answer);
+      $('#counter').html(counter++);
+    })
+
+
+
 </script>

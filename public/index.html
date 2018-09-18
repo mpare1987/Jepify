@@ -119,6 +119,7 @@
             this.gameID = gameID;
             this.$btnOpen = $('#open');
             this.$btnClear = $('#clear');
+            this.$btnNewClue = $('#newClue');
             this.$respondents = $('#respondent-list');
 
             this.open = function() {
@@ -129,6 +130,10 @@
             this.clear = function() {
                 console.log('clearing game!')
                 this.socket.emit('gameClear', this.gameID);
+            }
+
+            this.newClue = function() {
+               this.socket.emit('newClue', this.gameID);
             }
 
             this.appendRespondent = function(player) {
@@ -143,6 +148,10 @@
             this.$btnClear.on('click', function() {
                 that.clear();
                 that.$respondents.text('');
+            });
+
+            this.$btnNewClue.on('click', function() {
+               that.newClue();
             });
 
             // -------------------------
